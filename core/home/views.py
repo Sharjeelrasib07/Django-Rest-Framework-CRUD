@@ -19,11 +19,19 @@ def post_student(request):
     serializers.save()
     return Response({'status': 200, 'payload': serializers.data, 'message': 'Student created successfully'})
 
-@api_view(['PUT','PATCH'])
+@api_view(['PUT', 'PATCH'])
 def update_student(request, id):
     try:
         student_obj = Student.objects.get(id=id)
-        serializers = StudentSerializer(student_obj, data=request.data, partial=True)
+        
+        # Determine if the request is PUT or PATCH
+        if request.method == 'PUT':
+            partial = False
+        elif request.method == 'PATCH':
+            partial = True
+        
+        serializers = StudentSerializer(student_obj, data=request.data, partial=partial)
+        
         if not serializers.is_valid():
             return Response({'status': 403, 'message': 'Something went wrong', 'errors': serializers.errors})
         
@@ -33,7 +41,7 @@ def update_student(request, id):
         return Response({'status': 403, 'message': 'Invalid ID'})
     
 @api_view(['DELETE'])
-def delete_student(request, id):
+def delete_student(id):
     try:
         student_obj = Student.objects.get(id=id)
         student_obj.delete()
